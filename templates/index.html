@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Alarm System</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Custom styles for Inter font and general layout */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0d1117; /* Dark base background */
+            color: #e0e6eb; /* Lighter text for contrast */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow: hidden; /* Prevent scrollbars from background effects */
+            position: relative;
+        }
+
+        /* Enhanced Animated Background Elements */
+        body::before, body::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1; /* Keep behind content */
+            pointer-events: none; /* Allow clicks through */
+        }
+
+        /* Glowing Grid/Circuit Lines Animation (body::before) */
+        body::before {
+            background:
+                repeating-linear-gradient(
+                    -45deg,
+                    rgba(100, 255, 218, 0.08), /* Teal */
+                    rgba(100, 255, 218, 0.08) 2px,
+                    transparent 2px,
+                    transparent 20px
+                ),
+                repeating-linear-gradient(
+                    45deg,
+                    rgba(139, 92, 246, 0.08), /* Purple */
+                    rgba(139, 92, 246, 0.08) 2px,
+                    transparent 2px,
+                    transparent 20px
+                );
+            background-size: 40px 40px; /* Size of the repeating pattern */
+            animation: moveGrid 30s linear infinite;
+        }
+
+        /* Subtle Radial Pulse (body::after) */
+        body::after {
+            background: radial-gradient(circle at center, rgba(0, 188, 212, 0.05) 0%, transparent 60%); /* Cyan pulse */
+            animation: radialPulse 15s ease-in-out infinite alternate;
+        }
+
+        @keyframes moveGrid {
+            0% { background-position: 0 0; }
+            100% { background-position: 40px 40px; } /* Moves diagonally */
+        }
+
+        @keyframes radialPulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.2); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 0.8; }
+        }
+
+        /* Ensure the main container is responsive and centered */
+        .container {
+            max-width: 380px; /* Further reduced max-width for a much smaller form */
+            width: 100%;
+            background-color: rgba(18, 24, 32, 0.95); /* Darker, almost opaque card */
+            backdrop-filter: blur(10px); /* Stronger frosted glass effect */
+            border: 1px solid rgba(50, 60, 70, 0.7); /* Refined border */
+            border-radius: 20px; /* More rounded corners */
+            padding: 30px; /* Reduced padding */
+            box-shadow: 0 0 40px rgba(100, 255, 218, 0.3), /* Teal glow */
+                        0 0 80px rgba(139, 92, 246, 0.2); /* Purple glow */
+            animation: fadeIn 1s ease-out forwards; /* Fade-in animation on load */
+            position: relative; /* For z-index */
+            z-index: 1; /* Ensure card is above background */
+            margin: auto; /* Center the container horizontally */
+        }
+
+        /* Keyframe for fade-in animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(30px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        /* Title styling with glow */
+        h1 {
+            color: #ffffff; /* Changed to white */
+            text-shadow: 0 0 15px #a78bfa, 0 0 25px #a78bfa; /* Stronger glow */
+            transition: text-shadow 0.3s ease;
+            font-size: 2.25rem; /* Reduced font size for smaller form */
+            margin-bottom: 20px; /* Reduced margin */
+        }
+        h1:hover {
+            text-shadow: 0 0 20px #a78bfa, 0 0 35px #a78bfa, 0 0 50px #a78bfa;
+        }
+        h1 svg {
+            width: 32px; /* Reduced icon size */
+            height: 32px;
+        }
+
+        /* Style for form elements */
+        input[type="date"],
+        input[type="time"],
+        input[type="email"],
+        textarea {
+            width: 100%;
+            padding: 10px 14px; /* Reduced padding */
+            margin-bottom: 12px; /* Reduced margin */
+            border: 1px solid #4a5568; /* Darker border */
+            border-radius: 8px; /* Slightly less rounded */
+            box-sizing: border-box;
+            font-size: 15px; /* Reduced font size */
+            background-color: #1a202c; /* Darker input background */
+            color: #e0e6eb; /* Lighter text color */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+        }
+
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        input[type="email"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #64ffda; /* Bright teal focus border (radium color) */
+            box-shadow: 0 0 0 3px rgba(100, 255, 218, 0.4); /* Reduced glow size */
+            background-color: #2a3240; /* Slightly lighter on focus */
+        }
+
+        /* Placeholder text color */
+        input::placeholder,
+        textarea::placeholder {
+            color: #9ca3af; /* More visible gray placeholder */
+            font-size: 14px; /* Reduced placeholder font size */
+        }
+
+        /* Labels with subtle glow */
+        label {
+            color: #b0b8c4; /* Slightly lighter label color */
+            transition: color 0.3s ease;
+            display: block; /* Ensure label is a block element for consistent spacing */
+            margin-bottom: 3px; /* Reduced space below labels */
+            font-size: 0.875rem; /* text-sm */
+        }
+        label:hover {
+            color: #64ffda; /* Teal glow on hover */
+        }
+
+        /* New: Green glow for inputs and labels when data is present */
+        .has-data-glow {
+            border-color: #34d399 !important; /* Green border */
+            box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.4) !important; /* Reduced green glow */
+        }
+        /* Target the label using its 'for' attribute, which matches the input's 'id' */
+        label.has-data-glow {
+            color: #6ee7b7 !important; /* Lighter green text for label */
+            text-shadow: 0 0 6px rgba(110, 231, 183, 0.6); /* Reduced green text shadow for label */
+        }
+
+
+        /* Button styling */
+        button {
+            width: 100%;
+            padding: 12px 20px; /* Reduced padding */
+            background: linear-gradient(45deg, #8b5cf6, #7c3aed); /* Purple gradient */
+            color: white;
+            border: none;
+            border-radius: 8px; /* Reduced rounding */
+            font-size: 17px; /* Reduced font size */
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4); /* Reduced glow */
+            position: relative;
+            overflow: hidden; /* For ripple effect */
+            letter-spacing: 0.04em; /* Slightly reduced spacing */
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #7c3aed, #6d28d9); /* Darker purple gradient on hover */
+            transform: translateY(-3px); /* Reduced lift effect */
+            box-shadow: 0 9px 28px rgba(139, 92, 246, 0.6); /* Reduced glow */
+        }
+
+        button:active {
+            transform: translateY(0); /* Press effect */
+            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Ripple effect for button */
+        button::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 5px;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            opacity: 0;
+            transform: scale(1) translate(-50%, -50%);
+            transition: transform 0.5s, opacity 0.5s;
+        }
+
+        button:active::after {
+            transform: scale(150) translate(-50%, -50%); /* Reduced ripple size */
+            opacity: 1;
+            transition: 0s; /* No transition on activation */
+        }
+
+        /* Status messages */
+        .status-success {
+            background-color: #064e3b; /* Darker green */
+            color: #6ee7b7; /* Lighter green text */
+            border: 1px solid #34d399;
+            box-shadow: 0 0 10px rgba(52, 211, 153, 0.4); /* Reduced glow */
+            padding: 12px; /* Reduced padding */
+        }
+
+        .status-error {
+            background-color: #7f1d1d; /* Darker red */
+            color: #fca5a5; /* Lighter red text */
+            border: 1px solid #f87171;
+            box-shadow: 0 0 10px rgba(248, 113, 113, 0.4); /* Reduced glow */
+            padding: 12px; /* Reduced padding */
+        }
+
+        .status-warning {
+            background-color: #78350f; /* Darker yellow/orange */
+            color: #fcd34d; /* Lighter yellow text */
+            border: 1px solid #fbbf24;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.4); /* Reduced glow */
+            padding: 12px; /* Reduced padding */
+        }
+
+        .status-info {
+            background-color: #1e3a8a; /* Darker blue */
+            color: #93c5fd; /* Lighter blue text */
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.4); /* Reduced glow */
+            padding: 12px; /* Reduced padding */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-4xl font-extrabold text-center mb-8 flex items-center justify-center gap-3">
+            <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            Set Your Email Alarm
+        </h1>
+
+        <form id="alarmForm" class="space-y-5">
+            <div>
+                <label for="alarmDate" class="block text-sm font-medium mb-1">Date:</label>
+                <input type="date" id="alarmDate" required>
+            </div>
+
+            <div>
+                <label for="alarmTime" class="block text-sm font-medium mb-1">Time:</label>
+                <input type="time" id="alarmTime" required>
+            </div>
+
+            <div>
+                <label for="userEmail" class="block text-sm font-medium mb-1">Your Email:</label>
+                <input type="email" id="userEmail" placeholder="your@example.com" required>
+            </div>
+
+            <div>
+                <label for="reminderMessage" class="block text-sm font-medium mb-1">Reminder Message:</label>
+                <textarea id="reminderMessage" placeholder="Your reminder message..." rows="4" required class="resize-y"></textarea>
+            </div>
+
+            <button type="submit">
+                Set Alarm
+            </button>
+        </form>
+
+        <div id="statusMessage" class="mt-6 p-4 text-center text-sm rounded-lg transition-all duration-300 ease-in-out" role="alert">
+            <!-- Status messages will be displayed here -->
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const alarmForm = document.getElementById('alarmForm');
+            const alarmDateInput = document.getElementById('alarmDate');
+            const alarmTimeInput = document.getElementById('alarmTime');
+            const userEmailInput = document.getElementById('userEmail');
+            const reminderMessageInput = document.getElementById('reminderMessage');
+            const statusMessageDiv = document.getElementById('statusMessage');
+
+            // Set min date to today
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            alarmDateInput.min = `${year}-${month}-${day}`;
+
+            // Function to update status message with appropriate styling
+            function updateStatusMessage(message, type) {
+                statusMessageDiv.textContent = message;
+                // Remove all status classes before adding the new one
+                statusMessageDiv.className = 'mt-6 p-4 text-center text-sm rounded-lg transition-all duration-300 ease-in-out';
+                if (type) { // Only add class if type is provided
+                    statusMessageDiv.classList.add(`status-${type}`);
+                }
+            }
+
+            // Function to handle input glow
+            function handleInputGlow(event) {
+                const inputElement = event.target;
+                // Find the label using its 'for' attribute, which should match the input's 'id'
+                const labelElement = document.querySelector(`label[for="${inputElement.id}"]`);
+
+                if (inputElement.value.trim() !== '') {
+                    inputElement.classList.add('has-data-glow');
+                    if (labelElement) { // Check if label was found
+                        labelElement.classList.add('has-data-glow');
+                    }
+                } else {
+                    inputElement.classList.remove('has-data-glow');
+                    if (labelElement) { // Check if label was found
+                        labelElement.classList.remove('has-data-glow');
+                    }
+                }
+            }
+
+            // Attach input and change event listeners to all relevant fields
+            // 'input' for immediate feedback, 'change' for date/time pickers
+            alarmDateInput.addEventListener('input', handleInputGlow);
+            alarmDateInput.addEventListener('change', handleInputGlow);
+            alarmTimeInput.addEventListener('input', handleInputGlow);
+            alarmTimeInput.addEventListener('change', handleInputGlow);
+            userEmailInput.addEventListener('input', handleInputGlow);
+            reminderMessageInput.addEventListener('input', handleInputGlow);
+
+            // Also check initial state in case fields are pre-filled (e.g., by browser autocomplete)
+            handleInputGlow({ target: alarmDateInput });
+            handleInputGlow({ target: alarmTimeInput });
+            handleInputGlow({ target: userEmailInput });
+            handleInputGlow({ target: reminderMessageInput });
+
+
+            alarmForm.addEventListener('submit', async (event) => {
+                event.preventDefault(); // Prevent default form submission
+
+                // Clear previous messages
+                updateStatusMessage('', ''); // Reset message and classes
+
+                const alarmDate = alarmDateInput.value;
+                const alarmTime = alarmTimeInput.value;
+                const userEmail = userEmailInput.value;
+                const reminderMessage = reminderMessageInput.value;
+
+                // Basic validation
+                if (!alarmDate || !alarmTime || !userEmail || !reminderMessage) {
+                    updateStatusMessage('Please fill in all fields.', 'error');
+                    return;
+                }
+
+                // Combine date and time for a full timestamp
+                const alarmDateTime = new Date(`${alarmDate}T${alarmTime}`);
+                const currentDateTime = new Date();
+
+                if (alarmDateTime <= currentDateTime) {
+                    updateStatusMessage('Alarm time must be in the future.', 'error');
+                    return;
+                }
+
+                // Prepare data to send to the backend
+                const data = {
+                    date: alarmDate,
+                    time: alarmTime,
+                    email: userEmail,
+                    message: reminderMessage
+                };
+
+                // Display a loading message
+                updateStatusMessage('Setting alarm...', 'info');
+
+                try {
+                    // In a real application, you would send this data to your backend.
+                    // For this demonstration, we'll simulate a successful response after a short delay.
+                    // The URL below is a placeholder and would need to be replaced with your actual backend endpoint.
+                    const response = await fetch('/set-alarm', { // Generic placeholder URL
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data),
+                    });
+
+                    // Simulate backend response if fetch fails (due to no actual backend running)
+                    if (!response.ok) {
+                        // If the fetch fails, we'll assume it's because there's no backend running
+                        // and simulate a success for the UI, but provide a general note.
+                        console.warn("Request failed. Simulating success for UI demo.");
+                        updateStatusMessage('Alarm details received! (Note: Email sending requires a server-side component.)', 'warning');
+                        // Clear form fields on simulated success
+                        alarmForm.reset();
+                        return;
+                    }
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        updateStatusMessage('Alarm set successfully! You will receive an email at the specified time.', 'success');
+                        // Clear form fields on success
+                        alarmForm.reset();
+                        // Remove glow from all fields after successful submission
+                        document.querySelectorAll('.has-data-glow').forEach(el => el.classList.remove('has-data-glow'));
+                    } else {
+                        updateStatusMessage(`Failed to set alarm: ${result.message || 'Unknown error.'}`, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error setting alarm:', error);
+                    updateStatusMessage('An error occurred while trying to set the alarm. Please try again.', 'error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
