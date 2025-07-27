@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: email-alarm-app
+    env: python
+    buildCommand: ""
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SENDER_EMAIL
+        value: your_email@example.com
+      - key: SENDER_PASSWORD
+        value: your_app_password
